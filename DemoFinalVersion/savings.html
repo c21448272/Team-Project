@@ -1,0 +1,375 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <title>Bootstrap 5 Website Example</title>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.1/dist/css/bootstrap.min.css" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.1/dist/js/bootstrap.bundle.min.js"></script>
+  <style>
+    .form {
+      font-family: 'Arial', sans-serif;
+      margin: 0;
+      padding: 0;
+      text-align: center;
+    }
+
+    h1, h2 {
+      color: #333;
+      margin-top: 20px;
+    }
+
+    th, td {
+      border: 1px solid #ddd;
+      padding: 12px;
+      text-align: left;
+    }
+
+    th {
+      background-color: #f2f2f2;
+    }
+
+    .fakeimg {
+      height: 200px;
+      background: #EEE;
+    }
+
+    .top-section {
+      background-color: blue;
+      color: white;
+      text-align: center;
+      padding: 5vw;
+    }
+	.top-section h1 {
+      color: white;
+    }
+
+	.btn-purple {
+	  background-color: purple;
+	  color: white;
+	}
+	
+    .bottom-section {
+      background-color: white;
+      padding: 20px;
+    }
+
+  </style>
+</head>
+<body>
+
+<div class="top-section">
+  <h1>Budget Your Way</h1>
+</div>
+
+<nav class="navbar navbar-expand-md bg-dark navbar-dark">
+  <div class="container-fluid">
+    <!-- Navbar brand -->
+    <a class="navbar-brand" href="/">Budget Your Way</a>
+    <!-- Toggle button for mobile -->
+    <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#collapsibleNavbar">
+      <span class="navbar-toggler-icon"></span>
+    </button>
+    <!-- Navbar links -->
+    <div class="collapse navbar-collapse" id="collapsibleNavbar">
+      <ul class="navbar-nav">
+        <li class="nav-item">
+          <a class="nav-link" href="/">Home</a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link" href="/transactions">Transactions</a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link active" href="/savings">Savings</a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link" href="/settings">Settings</a>
+        </li>
+      </ul>
+      <ul class="navbar-nav ms-auto">
+        <li class="nav-item" id="loginNavItem">
+          <a class="nav-link" href="/login">Login</a>
+        </li>
+        <li class="nav-item" id="signupNavItem">
+          <a class="nav-link" href="/SignUp">Sign Up</a>
+        </li>
+        <li class="nav-item" id="logoutNavItem" style="display: none;">
+          <a class="nav-link active" href="/logout">Logout</a>
+        </li>
+      </ul>
+    </div>
+  </div>
+</nav>
+
+<div class="container mt-5">
+  <h2 class="text-center">Savings</h2>
+  <div class="row justify-content-center" id="savingsContainer">
+    <!-- Savings accounts will be dynamically added here -->
+  </div>
+  
+  <!-- Deposit Form -->
+  <div class="row mt-4">
+	  <div class="col-md-6 offset-md-3">
+		<form id="depositForm">
+		  <div class="form-group">
+			<label for="savingsAccount">Select Savings Account:</label>
+			<select class="form-select" id="savingsAccount" required>
+			  <!-- Savings accounts options will be dynamically added here -->
+			</select>
+		  </div>
+		  <div class="form-group">
+			<label for="depositAmount">Enter Amount to Deposit:</label>
+			<input type="number" class="form-control" id="depositAmount" required>
+		  </div>
+		  <button type="submit" class="btn btn-primary">Deposit</button>
+		  <button type="button" class="btn btn-danger ml-2" id="deleteSavingsBtn">Delete Savings</button>
+          <button type="button" class="btn btn-success ml-2" id="addAccountBtn">Add Account</button>
+		  <button type="button" class="btn btn-purple ml-2" id="withdrawBtn">Withdraw</button>
+		</form>
+	  </div>
+	</div>
+</div>	
+<script>
+	function fetchUsersData() {
+	// Make a GET request to the server endpoint ("/users") to fetch users data
+	fetch("/users")
+		.then(response => response.json())
+		.then(users => {
+			console.log(users); // For debugging purposes
+		})
+		.catch(error => console.error('Error fetching users data:', error));
+	}
+
+	window.onload = function () {
+		fetchSavingsData();
+		fetchSavingsDataId();
+		updateNavbar();
+
+		// Add event listener to deposit form
+		const depositForm = document.getElementById("depositForm");
+		depositForm.addEventListener("submit", handleDeposit);
+		
+		// Add event listener to withdraw button
+		const withdrawButton = document.getElementById("withdrawBtn");
+		withdrawButton.addEventListener("click", handleWithdraw);
+
+		// Add event listener to delete account button
+		const deleteSavingsButton = document.getElementById("deleteSavingsBtn");
+		if (deleteSavingsButton) {
+			deleteSavingsButton.addEventListener("click", function () {
+				const selectedSavingsId = document.getElementById("savingsAccount").value;
+				const confirmation = confirm("Are you sure you want to delete this savings account?");
+				if (confirmation) {
+					deleteSavingsAccount(selectedSavingsId);
+				}
+			});
+		}
+		
+		// Add event listener to add account button
+		const addAccountButton = document.getElementById("addAccountBtn");
+		addAccountButton.addEventListener("click", function () {
+			window.location.href = "/add_savings";
+		});
+	};
+
+	// Function to delete a savings account
+	function deleteSavingsAccount(savingsId) {
+		fetch(`/delete_savings/${savingsId}`, {
+			method: "DELETE"
+		})
+		.then(response => response.json())
+		.then(data => {
+			if (data.success) {
+				alert("Savings account deleted successfully.");
+				// Refresh the page or update UI as needed
+				window.location.href = "/savings";
+			} else {
+				alert("Failed to delete savings account.");
+			}
+		})
+		.catch(error => console.error("Error deleting savings account:", error));
+	}
+
+	
+	// Function to fetch savings data
+	function fetchSavingsData() {
+		fetch("/view_savings") // Endpoint to fetch savings data
+			.then(response => {
+				if (!response.ok) {
+					throw new Error('Network response was not ok');
+				}
+				return response.json();
+			})
+			.then(savingsData => {
+				// Verify that savingsData is an array
+				if (Array.isArray(savingsData)) {
+					// Update HTML with savings data
+					updateSavingsUI(savingsData);
+				} else {
+					console.error('Invalid savings data format:', savingsData);
+				}
+			})
+			.catch(error => console.error('Error fetching savings data:', error));
+	}
+
+	
+	// Function to fetch savings data id
+	function fetchSavingsDataId() {
+		fetch("/view_savings_id") // Endpoint to fetch savings data
+			.then(response => response.json())
+			.then(savingsDataId => {
+				// Update HTML with savings data
+				populateSavingsDropdown(savingsDataId);
+			})
+			.catch(error => console.error('Error fetching savings data id:', error));
+	}
+
+	// Function to populate the dropdown menu with savings accounts
+	function populateSavingsDropdown(savingsData) {
+		const savingsDropdown = document.getElementById("savingsAccount");
+
+		savingsData.forEach(savings => {
+			const option = document.createElement("option");
+			option.value = savings.saving_id;
+			option.textContent = savings.title;
+			savingsDropdown.appendChild(option);
+		});
+	}
+	
+	// Function to handle withdraw button click
+	function handleWithdraw() {
+		const selectedAccountId = document.getElementById("savingsAccount").value;
+		const withdrawAmount = parseFloat(document.getElementById("depositAmount").value);
+
+		// Make sure the withdraw amount is valid
+		if (isNaN(withdrawAmount) || withdrawAmount <= 0) {
+			alert("Please enter a valid withdraw amount.");
+			return;
+		}
+
+		// Make a POST request to update the current amount for the selected savings account
+		fetch("/withdraw", {
+			method: "POST",
+			headers: {
+				"Content-Type": "application/json"
+			},
+			body: JSON.stringify({
+				accountId: selectedAccountId,
+				withdrawAmount: withdrawAmount
+			})
+		})
+		.then(response => response.json())
+		.then(updatedSavings => {
+			window.location.href = "/savings";
+		})
+		.catch(error => console.error("Error withdrawing amount:", error));
+	}
+
+	// Function to handle deposit form submission
+	function handleDeposit(event) {
+		event.preventDefault(); // Prevent the default form submission
+
+		const selectedAccountId = document.getElementById("savingsAccount").value;
+		const depositAmount = parseFloat(document.getElementById("depositAmount").value);
+
+		// Make sure the deposit amount is valid
+		if (isNaN(depositAmount) || depositAmount <= 0) {
+			alert("Please enter a valid deposit amount.");
+			return;
+		}
+
+		// Make a POST request to update the current amount for the selected savings account
+		fetch("/deposit", {
+			method: "POST",
+			headers: {
+				"Content-Type": "application/json"
+			},
+			body: JSON.stringify({
+				accountId: selectedAccountId,
+				depositAmount: depositAmount
+			})
+		})
+		.then(response => response.json())
+		.then(updatedSavings => {
+          window.location.href = "/savings";
+		})
+		.catch(error => console.error("Error depositing amount:", error));
+	}
+
+
+	function updateNavbar() {
+	fetch("/user")
+	  .then(response => response.json())
+	  .then(user => {
+		const loginNavItem = document.getElementById("loginNavItem");
+		const signupNavItem = document.getElementById("signupNavItem");
+		const logoutNavItem = document.getElementById("logoutNavItem");
+
+		if (user) {
+		  // User is logged in
+		  loginNavItem.style.display = "none";
+		  signupNavItem.style.display = "none";
+		  logoutNavItem.style.display = "block";
+		} else {
+		  // User is not logged in
+		  loginNavItem.style.display = "block";
+		  signupNavItem.style.display = "block";
+		  logoutNavItem.style.display = "none";
+		}
+	  })
+	  .catch(error => console.error('Error fetching user data:', error));
+	}
+	
+	
+	// Function to update UI with savings data
+	function updateSavingsUI(savingsData) {
+		const savingsContainer = document.getElementById("savingsContainer");
+
+		// Check if savingsData is an array
+		if (Array.isArray(savingsData)) {
+			savingsData.forEach(savings => {
+				const savingsCard = document.createElement("div");
+				savingsCard.classList.add("col-6");
+
+				const currentDate = new Date();
+				const goalPercentage = (savings.current_amount / savings.goal_amount) * 100;
+
+				const cardContent = `
+					<div class="card">
+						<div class="card-body">
+							<h5 class="card-title">${savings.title}</h5>
+							<p class="card-text">Current Amount: €${savings.current_amount}</p>
+							<p class="card-text">Goal Amount: €${savings.goal}</p>
+							<p class="card-text">Start Date: ${formatDate(savings.start_date)}</p>
+							<p class="card-text">End Date: ${formatDate(savings.end_date)}</p>
+							<p class="card-text">Weekly Saving Amount: €${savings.weekly_saving_amount}</p>
+							<p class="card-text">Weeks to Goal: ${savings.weeks_to_goal}</p>
+						</div>
+						<br>
+					</div>
+				`;
+				savingsCard.innerHTML = cardContent;
+				savingsContainer.appendChild(savingsCard);
+			});
+		} else {
+			console.error('Invalid savings data format:', savingsData);
+		}
+	}
+
+
+	// Function to format date as yyyy-mm-dd
+	function formatDate(dateString) {
+		const date = new Date(dateString);
+		const year = date.getFullYear();
+		const month = String(date.getMonth() + 1).padStart(2, '0');
+		const day = String(date.getDate()).padStart(2, '0');
+		return `${year}-${month}-${day}`;
+	}
+</script>
+
+<div class="bottom-section mt-5 p-4 text-center">
+  <p>Footer</p>
+</div>
+
+</body>
+</html>

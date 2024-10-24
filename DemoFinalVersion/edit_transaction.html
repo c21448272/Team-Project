@@ -1,0 +1,291 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <title>Edit Transaction - Budget Your Way</title>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.1/dist/css/bootstrap.min.css" rel="stylesheet">
+  <style>
+    /* Custom styles */
+    .card {
+      max-width: 500px;
+      margin: auto;
+      margin-top: 50px;
+      border: 1px solid #ccc;
+      border-radius: 10px;
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    }
+
+    .top-section {
+      background-color: blue;
+      color: white;
+      text-align: center;
+      padding: 5vw;
+    }
+
+    .navbar {
+      background-color: blue;
+    }
+
+    .navbar-brand,
+    .navbar-nav .nav-link {
+      color: white;
+    }
+
+    .navbar-brand:hover,
+    .navbar-nav .nav-link:hover {
+      color: #f0f0f0;
+    }
+
+    .navbar-toggler {
+      border-color: white;
+    }
+
+    /* Form styles */
+    .form-group {
+      margin-bottom: 20px;
+    }
+
+    .form-group label {
+      font-weight: bold;
+    }
+
+    /* Footer styling */
+    .bottom-section {
+      margin-top: 50px;
+      padding: 20px;
+      background-color: #f8f9fa;
+      border-top: 1px solid #dee2e6;
+      text-align: center;
+    }
+  </style>
+</head>
+<body>
+
+<div class="top-section">
+  <h1>Budget Your Way</h1>
+</div>
+
+<nav class="navbar navbar-expand-md bg-dark navbar-dark">
+  <div class="container-fluid">
+    <a class="navbar-brand" href="/">Budget Your Way</a>
+    <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#collapsibleNavbar">
+      <span class="navbar-toggler-icon"></span>
+    </button>
+    <div class="collapse navbar-collapse" id="collapsibleNavbar">
+      <ul class="navbar-nav">
+        <li class="nav-item">
+          <a class="nav-link" href="/">Home</a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link active" href="/transactions">Transactions</a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link" href="/savings">Savings</a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link" href="/settings">Settings</a>
+        </li>
+      </ul>
+      <ul class="navbar-nav ms-auto">
+        <li class="nav-item" id="loginNavItem">
+          <a class="nav-link" href="/login">Login</a>
+        </li>
+        <li class="nav-item" id="signupNavItem">
+          <a class="nav-link" href="/SignUp">Sign Up</a>
+        </li>
+        <li class="nav-item" id="logoutNavItem" style="display: none;">
+          <a class="nav-link active" href="/logout">Logout</a>
+        </li>
+      </ul>
+    </div>
+  </div>
+</nav>
+
+<div class="container mt-5">
+    <div class="card">
+      <div class="card-body">
+        <h2 class="card-title text-center mb-4">Edit Transaction</h2>
+        <form id="transactionForm">
+          <div class="form-group">
+            <label for="name">Name:</label>
+            <input type="text" class="form-control" id="name" name="name">
+          </div>
+          <div class="mb-3">
+            <label for="category" class="form-label">Category <span class="text-danger">*</span></label>
+            <select class="form-select" id="category" name="category" required>
+                <option value="">Select Category</option>
+                <!-- Categories will be dynamically populated here -->
+            </select>
+          </div>
+          <div class="form-group">
+            <label for="type">Type:</label>
+            <input type="text" class="form-control" id="transaction_type" name="type">
+          </div>
+          <div class="form-group">
+            <label for="price">Price:</label>
+            <input type="text" class="form-control" id="price" name="price">
+          </div>
+          <div class="mb-3">
+            <label for="receipt_image" class="form-label">Receipt Image</label>
+            <input type="file" class="form-control" id="receipt_image" name="receipt_image">
+        </div>
+          <div class="form-group">
+            <label for="notes">Notes:</label>
+            <textarea class="form-control" id="notes" name="notes" rows="3"></textarea>
+          </div>
+          <div class="form-group">
+            <label for="location">Location:</label>
+            <input type="text" class="form-control" id="location" name="location">
+          </div>
+          <div class="form-group">
+            <label for="transactionTime">Transaction Time:</label>
+            <input type="text" class="form-control" id="transaction_time" name="transaction_time" readonly>
+          </div>
+          <button type="button" onclick="updateTransaction()" class="btn btn-primary">Save Changes</button>
+
+        </form>
+      </div>
+    </div>
+  </div>
+
+<script>
+  window.onload = async function () {
+    fetchTransaction();
+    fetchTransactionCategories();
+    updateNavbar();
+  };
+
+  function updateTransaction() {
+        const urlParams = new URLSearchParams(window.location.search);
+        const transactionId = urlParams.get('id');
+		const category = document.getElementById("category").value;
+		const transaction_type = document.getElementById("transaction_type").value;
+		const name = document.getElementById("name").value;
+		const price = document.getElementById("price").value;
+		const notes = document.getElementById("notes").value;
+		const location = document.getElementById("location").value;
+		let transactionTime = document.getElementById("transaction_time").value;
+    
+
+    // Check if transactionTime is empty
+    if (!transactionTime) {
+      // If transactionTime is empty, set it to the current time
+      const currentTime = new Date();
+      transactionTime = currentTime.toISOString().slice(0, 16); // Format as "YYYY-MM-DDTHH:MM"
+    }
+    console.log(transactionTime);
+
+		fetch("/update_transaction", {
+			method: "POST",
+			headers: {
+				"Content-Type": "application/json"
+			},
+			body: JSON.stringify({
+                transaction_id: transactionId,
+				category: category,
+				transaction_type: transaction_type,
+				name: name,
+				price: price,
+				notes: notes,
+				location: location,
+				transaction_time: transactionTime
+			})
+		})
+		.then(response => response.text())
+		.then(data => {
+			console.log(data);
+			alert("Transaction added successfully!" + transaction_type);
+			window.location.href = "/transactions";
+		})
+		.catch(error => console.error('Error adding Transaction:', error));
+	}
+
+  function fetchTransaction() {
+    const urlParams = new URLSearchParams(window.location.search);
+    const transactionId = urlParams.get('id');
+    console.log(transactionId)
+
+    fetch("/fetch_transaction", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({
+        transaction_id: transactionId,
+      })
+    })
+    .then(response => {
+      if (!response.ok) {
+        throw new Error('Network response was not ok');
+      }
+      return response.json();
+    })
+    .then(data => {
+      // Populate form with transaction details
+      populateForm(data);
+    })
+    .catch(error => console.error('Error displaying Transaction:', error));
+  }
+
+  function populateForm(transaction) {
+    // Populate form fields with transaction data
+    document.getElementById("name").value = transaction.name || "";
+    document.getElementById("category").value = transaction.category_id || "";
+    document.getElementById("transaction_type").value = transaction.transaction_type || "";
+    document.getElementById("price").value = transaction.price || "";
+    document.getElementById("notes").value = transaction.notes || "";
+    document.getElementById("location").value = transaction.location || "";
+    document.getElementById("transactionTime").value = transaction.transaction_time ? new Date(transaction.transaction_time).toLocaleString() : "N/A";
+
+  }
+
+  // Function to fetch transaction categories
+	function fetchTransactionCategories() {
+		fetch("/get_transaction_categories")
+			.then(response => response.json())
+			.then(categories => {
+				const categorySelect = document.getElementById("category");
+				categories.forEach(category => {
+					const option = document.createElement("option");
+					option.value = category.category_id;
+					option.textContent = category.category_description;
+					categorySelect.appendChild(option);
+				});
+			})
+			.catch(error => console.error('Error fetching transaction categories:', error));
+	}
+
+  function updateNavbar() {
+    fetch("/user")
+      .then(response => response.json())
+      .then(user => {
+        const loginNavItem = document.getElementById("loginNavItem");
+        const signupNavItem = document.getElementById("signupNavItem");
+        const logoutNavItem = document.getElementById("logoutNavItem");
+
+        if (user) {
+          // User is logged in
+          loginNavItem.style.display = "none";
+          signupNavItem.style.display = "none";
+          logoutNavItem.style.display = "block";
+        } else {
+          // User is not logged in
+          loginNavItem.style.display = "block";
+          signupNavItem.style.display = "block";
+          logoutNavItem.style.display = "none";
+        }
+      })
+      .catch(error => console.error('Error fetching user data:', error));
+  }
+
+  // You can add form submission handling here if needed
+
+</script>
+
+<div class="bottom-section mt-5 p-4 text-center">
+  <p>Footer</p>
+</div>
+
+</body>
+</html>

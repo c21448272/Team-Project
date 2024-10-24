@@ -1,0 +1,244 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <title>Add Transaction - Budget Your Way</title>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.1/dist/css/bootstrap.min.css" rel="stylesheet">
+  <style>
+    /* Custom styles */
+    .form-container {
+      max-width: 500px;
+      margin: auto;
+      padding: 20px;
+      border: 1px solid #ccc;
+      border-radius: 10px;
+      margin-top: 50px;
+    }
+
+    /* Retain the header and navbar styling */
+    .top-section {
+      background-color: blue;
+      color: white;
+      text-align: center;
+      padding: 5vw;
+    }
+
+    .navbar {
+      background-color: blue;
+    }
+
+    .navbar-brand,
+    .navbar-nav .nav-link {
+      color: white;
+    }
+
+    .navbar-brand:hover,
+    .navbar-nav .nav-link:hover {
+      color: #f0f0f0;
+    }
+
+    .navbar-toggler {
+      border-color: white;
+    }
+  </style>
+</head>
+<body>
+
+<div class="top-section">
+  <h1>Budget Your Way</h1>
+</div>
+
+<nav class="navbar navbar-expand-md bg-dark navbar-dark">
+  <div class="container-fluid">
+    <!-- Navbar brand -->
+    <a class="navbar-brand" href="/">Budget Your Way</a>
+    <!-- Toggle button for mobile -->
+    <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#collapsibleNavbar">
+      <span class="navbar-toggler-icon"></span>
+    </button>
+    <!-- Navbar links -->
+    <div class="collapse navbar-collapse" id="collapsibleNavbar">
+      <ul class="navbar-nav">
+        <li class="nav-item">
+          <a class="nav-link" href="/">Home</a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link active" href="/transactions">Transactions</a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link" href="/savings">Savings</a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link" href="/settings">Settings</a>
+        </li>
+      </ul>
+      <ul class="navbar-nav ms-auto">
+        <li class="nav-item" id="loginNavItem">
+          <a class="nav-link" href="/login">Login</a>
+        </li>
+        <li class="nav-item" id="signupNavItem">
+          <a class="nav-link" href="/SignUp">Sign Up</a>
+        </li>
+        <li class="nav-item" id="logoutNavItem" style="display: none;">
+          <a class="nav-link active" href="/logout">Logout</a>
+        </li>
+      </ul>
+    </div>
+  </div>
+</nav>
+
+<div class="container mt-5">
+  <div class="form-container">
+    <h2 class="text-center mb-4">Add Transaction</h2>
+    <form enctype="multipart/form-data">
+      <div class="mb-3">
+        <label for="category" class="form-label">Category <span class="text-danger">*</span></label>
+        <select class="form-select" id="category" name="category" required>
+            <option value="">Select Category</option>
+            <!-- Categories will be dynamically populated here -->
+        </select>
+      </div>
+	  <div class="mb-3">
+		<label for="transaction_type" class="form-label">Transaction Type <span class="text-danger">*</span></label>
+		<select class="form-select" id="transaction_type" name="transaction_type" required>
+			<option value="income">income</option>
+			<option value="spending">spending</option>
+		</select>
+	  </div>
+      <div class="mb-3">
+        <label for="name" class="form-label">Name <span class="text-danger">*</span></label>
+        <input type="text" class="form-control" id="name" name="name" required>
+      </div>
+      <div class="mb-3">
+        <label for="price" class="form-label">Price <span class="text-danger">*</span></label>
+        <input type="number" class="form-control" id="price" name="price" step="0.01" required>
+      </div>      
+      <div class="mb-3">
+        <label for="receipt_image" class="form-label">Receipt Image</label>
+        <input type="file" class="form-control" id="receipt_image" name="receipt_image">
+    </div>
+      <div class="mb-3">
+        <label for="notes" class="form-label">Notes</label>
+        <textarea class="form-control" id="notes" name="notes" rows="3"></textarea>
+      </div>
+      <div class="mb-3">
+        <label for="location" class="form-label">Location</label>
+        <input type="text" class="form-control" id="location" name="location">
+      </div>
+      <div class="mb-3">
+        <label for="transaction_time" class="form-label">Transaction Time</label>
+        <input type="datetime-local" class="form-control" id="transaction_time" name="transaction_time">
+      </div>
+      <button type="button" onclick="addTransaction()" class="btn btn-primary">Submit</button>
+    </form>
+  </div>
+</div>
+
+<script>
+// Call the function to fetch and populate transaction categories when the page loads
+	window.onload = async function () {
+		updateNavbar();
+		fetchTransactionCategories();
+		
+	};
+
+	  function fetchUsersData() {
+		  // Make a GET request to the server endpoint ("/users") to fetch users data
+		  fetch("/Users")
+			  .then(response => response.json())
+			  .then(data => {
+				  // Display the users data in the "userData" div
+				  displayClothesData(data);
+			  })
+			  .catch(error => console.error('Error fetching clothes data:', error));
+	  }
+	  
+	  // Function to fetch transaction categories
+	function fetchTransactionCategories() {
+		fetch("/get_transaction_categories")
+			.then(response => response.json())
+			.then(categories => {
+				const categorySelect = document.getElementById("category");
+				categories.forEach(category => {
+					const option = document.createElement("option");
+					option.value = category.category_id;
+					option.textContent = category.category_description;
+					categorySelect.appendChild(option);
+				});
+			})
+			.catch(error => console.error('Error fetching transaction categories:', error));
+	}
+
+	function addTransaction() {
+		const category = document.getElementById("category").value;
+		const transaction_type = document.getElementById("transaction_type").value;
+		const name = document.getElementById("name").value;
+		const price = document.getElementById("price").value;
+		const receiptImage = document.getElementById("receipt_image").files[0];
+		const notes = document.getElementById("notes").value;
+		const location = document.getElementById("location").value;
+		let transactionTime = document.getElementById("transaction_time").value;
+		
+		// Check if transactionTime is empty
+		if (!transactionTime) {
+			// If transactionTime is empty, set it to the current time
+			const currentTime = new Date();
+			transactionTime = currentTime.toISOString().slice(0, 16); // Format as "YYYY-MM-DDTHH:MM"
+		}
+		fetch("/insert_transaction", {
+			method: "POST",
+			headers: {
+				"Content-Type": "application/json"
+			},
+			body: JSON.stringify({
+				category: category,
+				transaction_type: transaction_type,
+				name: name,
+				price: price,
+				receiptImage: receiptImage,
+				notes: notes,
+				location: location,
+				transactionTime: transactionTime
+			})
+		})
+		.then(response => response.text())
+		.then(data => {
+			console.log(data);
+			alert("Transaction added successfully!" + transaction_type);
+			window.location.href = "/transactions";
+		})
+		.catch(error => console.error('Error adding Transaction:', error));
+	}
+
+
+  function updateNavbar() {
+    fetch("/user")
+      .then(response => response.json())
+      .then(user => {
+        const loginNavItem = document.getElementById("loginNavItem");
+        const signupNavItem = document.getElementById("signupNavItem");
+        const logoutNavItem = document.getElementById("logoutNavItem");
+
+        if (user) {
+          // User is logged in
+          loginNavItem.style.display = "none";
+          signupNavItem.style.display = "none";
+          logoutNavItem.style.display = "block";
+        } else {
+          // User is not logged in
+          loginNavItem.style.display = "block";
+          signupNavItem.style.display = "block";
+          logoutNavItem.style.display = "none";
+        }
+      })
+      .catch(error => console.error('Error fetching user data:', error));
+  }
+  </script>
+
+<div class="bottom-section mt-5 p-4 text-center">
+  <p>Footer</p>
+</div>
+
+</body>
+</html>

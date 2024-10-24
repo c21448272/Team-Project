@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <title>Add Savings - Budget Your Way</title>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.1/dist/css/bootstrap.min.css" rel="stylesheet">
+  <style>
+    /* Custom styles */
+    .form-container {
+      max-width: 500px;
+      margin: auto;
+      padding: 20px;
+      border: 1px solid #ccc;
+      border-radius: 10px;
+      margin-top: 50px;
+    }
+
+    /* Retain the header and navbar styling */
+    .top-section {
+      background-color: blue;
+      color: white;
+      text-align: center;
+      padding: 5vw;
+    }
+
+    .navbar {
+      background-color: blue;
+    }
+
+    .navbar-brand,
+    .navbar-nav .nav-link {
+      color: white;
+    }
+
+    .navbar-brand:hover,
+    .navbar-nav .nav-link:hover {
+      color: #f0f0f0;
+    }
+
+    .navbar-toggler {
+      border-color: white;
+    }
+  </style>
+</head>
+<body>
+
+<div class="top-section">
+  <h1>Budget Your Way</h1>
+</div>
+
+<nav class="navbar navbar-expand-md bg-dark navbar-dark">
+  <div class="container-fluid">
+    <!-- Navbar brand -->
+    <a class="navbar-brand" href="/">Budget Your Way</a>
+    <!-- Toggle button for mobile -->
+    <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#collapsibleNavbar">
+      <span class="navbar-toggler-icon"></span>
+    </button>
+    <!-- Navbar links -->
+    <div class="collapse navbar-collapse" id="collapsibleNavbar">
+      <ul class="navbar-nav">
+        <li class="nav-item">
+          <a class="nav-link" href="/">Home</a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link active" href="/transactions">Transactions</a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link" href="/savings">Savings</a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link" href="/settings">Settings</a>
+        </li>
+      </ul>
+      <ul class="navbar-nav ms-auto">
+        <li class="nav-item" id="loginNavItem">
+          <a class="nav-link" href="/login">Login</a>
+        </li>
+        <li class="nav-item" id="signupNavItem">
+          <a class="nav-link" href="/SignUp">Sign Up</a>
+        </li>
+        <li class="nav-item" id="logoutNavItem" style="display: none;">
+          <a class="nav-link active" href="/logout">Logout</a>
+        </li>
+      </ul>
+    </div>
+  </div>
+</nav>
+
+<div class="container mt-5">
+  <div class="form-container">
+    <h2 class="text-center mb-4">Add Savings</h2>
+    <form enctype="multipart/form-data">
+      <div class="mb-3">
+        <label for="Goal" class="form-label">Goal (Amount you wish to save) <span class="text-danger">*</span></label>
+        <input type="number" class="form-control" id="goal" name="goal" required>
+      </div>
+	  <div class="mb-3">
+        <label for="Sdate" class="form-label">Start Date  <span class="text-danger">*</span></label>
+        <input type="Date" class="form-control" id="Sdate" name="Sdate" required>
+      </div>
+	  <div class="mb-3">
+        <label for="Edate" class="form-label">End Date  <span class="text-danger">*</span></label>
+        <input type="Date" class="form-control" id="Edate" name="Edate" required>
+      </div>
+	  <div class="mb-3">
+        <label for="Title" class="form-label">Savings Title <span class="text-danger">*</span></label>
+        <input type="text" class="form-control" id="title" name="title" required>
+      </div>
+  
+      <button type="button" onclick="addSavings()" class="btn btn-primary">Submit</button>
+    </form>
+  </div>
+</div>
+
+<script>
+  function fetchUsersData() {
+      // Make a GET request to the server endpoint ("/users") to fetch users data
+      fetch("/Users")
+          .then(response => response.json())
+          .then(data => {
+              // Display the users data in the "userData" div
+              displayClothesData(data);
+          })
+          .catch(error => console.error('Error fetching clothes data:', error));
+  }
+  
+  function addSavings() {
+      const goal = document.getElementById("goal").value;
+      const sdate = document.getElementById("Sdate").value;
+      const edate = document.getElementById("Edate").value;
+      const title = document.getElementById("title").value;
+  
+      fetch("/insert_savings", {
+          method: "POST",
+          headers: {
+              "Content-Type": "application/json"
+          },
+          body: JSON.stringify({ goal: goal, start_date: sdate, end_date: edate, title: title })
+      })
+      .then(response => response.text())
+      .then(data => {
+          console.log(data);
+          alert("Saving added successfully!");
+          window.location.href = "/savings";
+      })
+      .catch(error => console.error('Error adding Transaction:', error));
+  }
+</script>
+
+<div class="bottom-section mt-5 p-4 text-center">
+  <p>Footer</p>
+</div>
+
+</body>
+</html>

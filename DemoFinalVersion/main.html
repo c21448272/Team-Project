@@ -1,0 +1,231 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <title>BudgetYourWay</title>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.1/dist/css/bootstrap.min.css" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.1/dist/js/bootstrap.bundle.min.js"></script>
+  <style>
+    .form {
+      font-family: 'Arial', sans-serif;
+      margin: 0;
+      padding: 0;
+      text-align: center;
+    }
+
+    h1, h2 {
+      color: #333;
+      margin-top: 20px;
+    }
+
+    th, td {
+      border: 1px solid #ddd;
+      padding: 12px;
+      text-align: left;
+    }
+
+    th {
+      background-color: #f2f2f2;
+    }
+
+    .fakeimg {
+      height: 200px;
+      background: #EEE;
+    }
+
+    .top-section {
+      background-color: blue;
+      color: white;
+      text-align: center;
+      padding: 5vw;
+    }
+	.top-section h1 {
+      color: white;
+    }
+
+    .bottom-section {
+      background-color: white;
+      padding: 20px;
+    }
+
+  </style>
+</head>
+<body>
+
+<div class="top-section">
+  <h1>Budget Your Way</h1>
+</div>
+
+<nav class="navbar navbar-expand-md bg-dark navbar-dark">
+  <div class="container-fluid">
+    <!-- Navbar brand -->
+    <a class="navbar-brand" href="/">Budget Your Way</a>
+    <!-- Toggle button for mobile -->
+    <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#collapsibleNavbar">
+      <span class="navbar-toggler-icon"></span>
+    </button>
+    <!-- Navbar links -->
+    <div class="collapse navbar-collapse" id="collapsibleNavbar">
+      <ul class="navbar-nav">
+        <li class="nav-item">
+          <a class="nav-link active" href="/">Home</a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link" href="/transactions">Transactions</a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link" href="/savings">Savings</a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link" href="/settings">Settings</a>
+        </li>
+      </ul>
+      <ul class="navbar-nav ms-auto">
+        <li class="nav-item" id="loginNavItem">
+          <a class="nav-link" href="/login">Login</a>
+        </li>
+        <li class="nav-item" id="signupNavItem">
+          <a class="nav-link" href="/SignUp">Sign Up</a>
+        </li>
+        <li class="nav-item" id="logoutNavItem" style="display: none;">
+          <a class="nav-link active" href="/logout">Logout</a>
+        </li>
+      </ul>
+    </div>
+  </div>
+</nav>
+
+<div class="container mt-5">
+  <h2 class="text-center">Balance</h2>
+    <div class="row justify-content-center">
+    <div class="col-6">
+      <div class="card">
+        <div class="card-body text-center">
+          <h3 id ="balanceAmount"></h3>
+        </div>
+      </div>
+      <div class="card mt-3">
+        <div class="card-body text-center">
+            <h3>Recent Transactions</h3>
+            <div class="table-responsive"> <!-- Ensure table to be responsive for small screens -->
+                <table class="table table-striped" id="transaction-table"> 
+                    <thead>
+                        <tr>
+                            <th>Name</th>
+                            <th>Category</th>
+                            <th>Price</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <!-- Transactions will be inserted here -->
+                    </tbody>
+                </table>
+            </div>
+        </div>
+      </div>
+    </div>
+	
+  </div>
+
+  <script>
+  window.onload = function () {
+    // Update navbar based on user login status
+    updateNavbar();
+	fetchBalance();
+    // Fetch transactions after fetching user data
+    fetchTransactions();
+  };
+  
+	function fetchBalance() {
+	  fetch('/balance', {
+		method: 'POST',
+		headers: {
+		  'Content-Type': 'application/json'
+		},
+		body: JSON.stringify({ user_id: '' }) 
+	  })
+	  .then(response => response.json())
+	  .then(balanceData => {
+		console.log('Balance Data:', balanceData); // Log balance data
+		const balanceElement = document.getElementById("balanceAmount");
+		if (balanceData && typeof balanceData.balance === 'string') {
+		  const balance = parseFloat(balanceData.balance);
+		  if (!isNaN(balance)) {
+			balanceElement.textContent = `€${balance.toFixed(2)}`;
+		  } else {
+			console.error('Error: Invalid balance data');
+		  }
+		} else {
+		  console.error('Error: Invalid balance data');
+		}
+	  })
+	  .catch(error => {
+		console.error('Error fetching balance:', error);
+	  });
+	}
+
+    function updateNavbar() {
+      fetch("/user")
+        .then(response => response.json())
+        .then(user => {
+          const loginNavItem = document.getElementById("loginNavItem");
+          const signupNavItem = document.getElementById("signupNavItem");
+          const logoutNavItem = document.getElementById("logoutNavItem");
+  
+          if (user) {
+            // User is logged in
+            loginNavItem.style.display = "none";
+            signupNavItem.style.display = "none";
+            logoutNavItem.style.display = "block";
+          } else {
+            // User is not logged in
+            loginNavItem.style.display = "block";
+            signupNavItem.style.display = "block";
+            logoutNavItem.style.display = "none";
+          }
+        })
+        .catch(error => console.error('Error fetching user data:', error));
+    }
+  
+    function fetchTransactions() {
+      fetch('/view_transaction', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ user_id: '' }) 
+      })
+      .then(response => response.json())
+      .then(transactions => {
+        console.log('Transactions:', transactions); // Log transactions data
+        const tbody = document.querySelector('#transaction-table tbody');
+        let total = 0; // Initialize total balance
+        transactions.forEach(transaction => {
+          const tr = document.createElement('tr');
+          tr.innerHTML = `
+            <td>${transaction.name}</td>
+            <td>${transaction.category}</td>
+            <td>${transaction.price}</td>
+          `;
+          tbody.appendChild(tr);
+          total += transaction.price; // Accumulate the transaction price
+        });
+      })
+      .catch(error => {
+        console.error('Error fetching transactions:', error);
+      });
+    }
+  </script>
+  
+  
+
+
+</div>
+
+<div class="bottom-section mt-5 p-4 text-center">
+  <p>Footer</p>
+</div>
+
+</body>
+</html>
