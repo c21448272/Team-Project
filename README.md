@@ -1,0 +1,1 @@
+Collaborated with a team to develop a budget management web application that helps users track their spending, displays their current balance, and allows them to set aside funds for special occasions. Worked closely with clients to ensure the application met their specific needs and preferences.
